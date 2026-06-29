@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<!-- viewport-fit=cover -> permite usar las "safe areas" del iPhone (notch / barra inferior) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0e1a13" />
+<title>Para ti</title>
+
+<!--
+  ============================================================================
+  SORPRESA DE CUMPLEAÑOS  ·  un solo archivo (HTML + CSS + JS)
+  ============================================================================
+
+  COMO PERSONALIZARLO  (solo necesitas mirar 2 cosas):
+
+  1) IMAGENES: deja estos archivos EN LA MISMA CARPETA que este index.html
+       foto1.jpg ... foto24.jpg     (vuestras fotos)
+       extra.jpg  extra2.jpg        (fotos sueltas para transicion / mosaico)
+       thailand-bg.jpg              (fondo de la seccion Tailandia)
+       asia-gardens-bg.jpg          (fondo del reveal)
+       leaf1.png  leaf2.png         (hojas; mejor PNG con fondo transparente)
+     Si falta alguna foto NO se rompe nada: se ve un marco elegante vacio.
+
+  2) TEXTOS: estan escritos directamente en el HTML, cada seccion marcada con
+     un comentario (busca "SECCION 1", "SECCION 2", ...). Edita ahi las frases.
+     Se dejan en el HTML a proposito: si el navegador no ejecutara el
+     JavaScript, el mensaje se sigue viendo entero (en scroll normal).
+
+  3) FECHA Y REPARTO DE FOTOS: en el bloque CONFIG, al principio del codigo JS
+     (busca la palabra CONFIG). Ahi cambias la fecha del contador y que foto
+     aparece en cada seccion.
+
+  NAVEGACION: la experiencia avanza pantalla a pantalla con botones
+  ("Tengo algo para ti", "Seguir", "Continuar", "Ver las pistas", "Descubrir").
+  Solo se hace scroll dentro de la seccion de Recuerdos. Pensado para que vaya
+  fino en Safari de iPhone.
+  ============================================================================
+-->
+
+<!-- Tipografias elegantes. Si no hay internet, se usan las de respaldo del CSS. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<style>
+/* ===========================================================================
+   1. VARIABLES (colores, tipografias, ritmos)
+   =========================================================================== */
+:root{
+  /* Paleta */
+  --verde-profundo:#0e1a13;  /* casi negro verdoso (fondos base) */
+  --verde-oscuro:  #14241b;  /* verde selva oscuro */
+  --verde-medio:   #1f3a2b;  /* verde algo mas vivo */
+  --beige:         #e7dcc8;  /* beige arena */
+  --beige-claro:   #f5f1e8;  /* blanco roto */
+  --dorado:        #c9a86a;  /* dorado suave */
+  --dorado-claro:  #e6d2a6;
+  --madera:        #6b4f3a;  /* marron madera */
+  --madera-suave:  #8a6c52;
+
+  /* Tipografias (con respaldos para uso sin conexion) */
+  --serif: "Cormorant Garamond","Hoefler Text",Georgia,"Times New Roman",serif;
+  --sans:  "Jost","Avenir Next","Helvetica Neue",Arial,sans-serif;
+
+  /* Movimiento */
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --lento:1s;
+
+  --kb:0px;  /* alto del teclado movil (lo calcula el JS para el input de la apuesta) */
+}
+
+/* ===========================================================================
+   2. RESET Y BASE
+   =========================================================================== */
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+html{ -webkit-text-size-adjust:100%; }
+html,body{
+  max-width:100%;
+  overflow-x:hidden;            /* nunca scroll horizontal (importante en iPhone) */
+}
+body{
+  font-family:var(--sans);
+  font-weight:300;
+  color:var(--beige-claro);
+  background:var(--verde-profundo);
+  line-height:1.65;
+  letter-spacing:.01em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+img{ max-width:100%; display:block; }
+
+h1,h2,h3{ font-family:var(--serif); font-weight:500; line-height:1.12; }
+
+/* Tamaños fluidos (se adaptan de iPhone a escritorio) */
+.t-xl{ font-size:clamp(2.9rem,12vw,6.5rem); }
+.t-l { font-size:clamp(2.1rem,7.5vw,4rem); }
+.t-m { font-size:clamp(1.7rem,5.5vw,2.7rem); }
+.t-s { font-size:clamp(1.45rem,4.6vw,2.1rem); }
+.grande{ font-size:clamp(1.15rem,3.6vw,1.5rem); }
+.med{ font-size:clamp(1.02rem,2.9vw,1.2rem); }
+
+p{ font-weight:300; }
+
+/* ===========================================================================
+   3. SECCIONES
+   =========================================================================== */
+.seccion{
+  position:relative;
+  min-height:100vh;
+  min-height:100dvh;            /* dvh = altura real en iPhone (sin saltos de barra) */
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  overflow:hidden;             /* recorta hojas/fotos para que no provoquen scroll */
+  /* Espaciado + safe-area del iPhone */
+  padding-top:   max(clamp(3.5rem,9vh,7rem), env(safe-area-inset-top));
+  padding-bottom:max(clamp(3.5rem,9vh,7rem), env(safe-area-inset-bottom));
+  padding-left:  max(clamp(1.4rem,6vw,4rem), env(safe-area-inset-left));
+  padding-right: max(clamp(1.4rem,6vw,4rem), env(safe-area-inset-right));
+}
+.seccion.alta{ min-height:auto; }  /* para secciones que crecen (timeline) */
+
+/* Caja de texto: ancho limitado y SIEMPRE por encima de fotos/hojas */
+.contenido{
+  position:relative;
+  z-index:6;
+  max-width:640px;
+  width:100%;
+  margin:0 auto;
+}
+
+/* Detalles decorativos */
+.kicker{
+  font-size:.78rem; letter-spacing:.42em; text-transform:uppercase;
+  color:var(--dorado); font-weight:400; margin-bottom:1.3rem;
+}
+.filete{
+  width:54px; height:1px; margin:1.6rem auto;
+  background:linear-gradient(90deg,transparent,var(--dorado),transparent);
+  opacity:.85;
+}
+/* Separacion del boton de "continuar / seguir" entre pantallas */
+.continuar{ margin-top:clamp(2.2rem,6vh,3.4rem); }
+
+/* ===========================================================================
+   3b. NAVEGACION POR PANTALLAS  (solo cuando hay JS: body.js-nav)
+   Sin JS, todo queda en scroll normal y se ve entero (respaldo).
+   =========================================================================== */
+body.js-nav{ }
+body.js-nav .seccion{ display:none; }              /* solo se ve la seccion activa */
+body.js-nav .seccion.activa{ display:flex; }
+body.js-nav .scroll-hint{ display:none; }          /* ya no navegamos por scroll */
+
+/* Velo para el fundido entre pantallas */
+#fade{
+  position:fixed; inset:0; z-index:90; background:var(--verde-profundo);
+  opacity:0; visibility:hidden; transition:opacity .4s var(--ease), visibility .4s var(--ease);
+}
+#fade.on{ opacity:1; visibility:visible; }
+
+/* ===========================================================================
+   4. APARICION (fundido suave al entrar en cada pantalla)
+   =========================================================================== */
+.fx{ opacity:0; transform:translateY(28px); transition:opacity var(--lento) var(--ease), transform var(--lento) var(--ease); }
+.fx.izq{ transform:translateX(-40px); }
+.fx.der{ transform:translateX(40px); }
+.fx.visible{ opacity:1; transform:none; }
+
+/* ===========================================================================
+   5. FONDOS DE CADA SECCION (degradados que cambian el ambiente)
+   =========================================================================== */
+#hero{ background:radial-gradient(120% 90% at 50% 10%,rgba(40,66,49,.5),transparent 60%),linear-gradient(180deg,#0b150f,#14241b 60%,#0c1611); }
+#recuerdos{ background:linear-gradient(180deg,#0c1611,#16271d 50%,#13231a); }
+#tailandia{ background:linear-gradient(180deg,#0e1a13,#14241b); }
+#transicion{ background:radial-gradient(100% 80% at 82% 18%,rgba(45,74,49,.5),transparent 60%),radial-gradient(100% 80% at 8% 92%,rgba(60,80,44,.42),transparent 60%),linear-gradient(180deg,#16271d,#0e1a13); }
+#pistas{ background:radial-gradient(120% 90% at 50% 0%,rgba(107,79,58,.32),transparent 55%),linear-gradient(180deg,#13211a,#1a2c20); }
+#reveal{ background:linear-gradient(180deg,#0e1a13,#14241b); }
+#cierre{ background:linear-gradient(180deg,#14241b,#1d2f22 60%,#243524); }
+
+/* Capa de imagen de fondo (Tailandia y reveal). No usamos fondos fijos (van mal en iOS). */
+.bg-foto{ position:absolute; inset:0; z-index:0; background-size:cover; background-position:center; }
+#tailandia .bg-foto{ background-image:var(--bg-tailandia,linear-gradient(160deg,#243a2a,#3a4a2c)); }
+#reveal .bg-foto{ background-image:var(--bg-asia,linear-gradient(160deg,#1f3a2b,#2c4a30)); transform:scale(1.04); }
+
+/* Velo oscuro FUERTE sobre las fotos de fondo, para que el texto se lea SIEMPRE
+   (cambio 2: legibilidad sobre fondos claros) */
+#tailandia .bg-foto::after, #reveal .bg-foto::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(8,15,11,.66), rgba(8,15,11,.46) 38%, rgba(8,15,11,.8));
+}
+
+/* "Glass card" muy sutil + halo radial detras del texto en Tailandia y reveal */
+#tailandia .contenido, #reveal .contenido{
+  background:radial-gradient(120% 110% at 50% 45%, rgba(8,15,11,.55), rgba(8,15,11,.16) 70%, transparent);
+  border-radius:26px;
+  padding:clamp(1.5rem,5vw,2.4rem) clamp(1.2rem,5vw,2.2rem);
+  text-shadow:0 2px 18px rgba(0,0,0,.55);
+  backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+}
+
+/* Ken Burns muy suave en el reveal (zoom lento) */
+#reveal.visible .bg-foto{ animation:kenburns 24s ease-out forwards; }
+@keyframes kenburns{ from{ transform:scale(1.14); } to{ transform:scale(1); } }
+
+/* ===========================================================================
+   6. HOJAS
+   =========================================================================== */
+.hoja{
+  position:absolute; width:clamp(120px,26vw,320px); opacity:.5; pointer-events:none; z-index:2;
+  filter:drop-shadow(0 14px 26px rgba(0,0,0,.4));
+}
+.hoja.izq{ top:-3%; left:-8%; transform:rotate(-12deg); }
+.hoja.der{ bottom:-5%; right:-9%; transform:rotate(162deg); }
+.hoja.der-arriba{ top:-5%; right:-7%; transform:rotate(35deg); }
+.hoja.izq-abajo{ bottom:-5%; left:-8%; transform:rotate(-150deg); }
+.hoja.grande{ width:clamp(180px,42vw,460px); opacity:.55; }
+.hoja.sin-img{ display:none; }   /* si no hay PNG, se oculta (no icono roto) */
+
+/* ===========================================================================
+   7. POLAROIDS / FOTOS
+   =========================================================================== */
+.polaroid{
+  position:relative; background:var(--beige-claro);
+  padding:9px 9px 30px; border-radius:3px;
+  box-shadow:0 18px 40px rgba(0,0,0,.45),0 2px 4px rgba(0,0,0,.3);
+}
+.polaroid .marco{
+  aspect-ratio:4/5; width:100%; overflow:hidden; border-radius:2px; display:block;
+  /* textura de respaldo si la foto no carga */
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.5),transparent),
+    repeating-linear-gradient(45deg,#d9cdb4 0 14px,#d2c5aa 14px 28px);
+  position:relative;
+}
+.polaroid .marco::after{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 45%,rgba(107,79,58,.12),transparent 60%);
+}
+.polaroid .marco img{ width:100%; height:100%; object-fit:cover; position:relative; z-index:1; }
+.polaroid.cuadrada .marco{ aspect-ratio:1/1; }
+
+/* ---- HERO: fondo en carrusel desenfocado ---- */
+.hero-bg{ position:absolute; inset:0; z-index:0; }
+.hero-bg .capa{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  filter:blur(5px) brightness(.6) saturate(1.05); transform:scale(1.1);
+  opacity:0; transition:opacity 2.2s var(--ease);
+}
+.hero-bg .capa.activa{ opacity:1; }
+.hero-overlay{
+  position:absolute; inset:0; z-index:1;
+  background:
+    radial-gradient(120% 80% at 50% 30%,rgba(14,26,19,.35),rgba(14,26,19,.78) 80%),
+    linear-gradient(180deg,rgba(11,21,15,.55),rgba(11,21,15,.4) 40%,rgba(11,21,15,.9));
+}
+/* Polaroids flotantes del hero (cambio 3: mas grandes, en esquinas) */
+.hero-polaroids{ position:absolute; inset:0; z-index:3; pointer-events:none; }
+.hero-polaroids .polaroid{ position:absolute; width:clamp(120px,26vw,200px); animation:flota 8s ease-in-out infinite; }
+.hp1{ top:7%;  left:4%;  --r:-7deg;  transform:rotate(var(--r)); animation-delay:0s; }
+.hp2{ top:10%; right:4%; --r:6deg;   transform:rotate(var(--r)); animation-delay:1.6s; }
+.hp3{ bottom:10%; left:6%; --r:4deg;  transform:rotate(var(--r)); animation-delay:3s; }
+.hp4{ bottom:8%; right:6%; --r:-5deg; transform:rotate(var(--r)); animation-delay:2.2s; }
+@keyframes flota{ 0%,100%{ transform:translateY(0) rotate(var(--r,0deg)); } 50%{ transform:translateY(-12px) rotate(var(--r,0deg)); } }
+
+/* refuerzo de legibilidad del texto del hero sobre las fotos */
+#hero .contenido{ text-shadow:0 2px 24px rgba(0,0,0,.55); }
+
+/* ===========================================================================
+   8. RECUERDOS (timeline emocional — unica seccion con scroll)
+   =========================================================================== */
+#recuerdos{ padding-top:14vh; padding-bottom:12vh; }
+.recuerdos-intro{ max-width:560px; margin:0 auto clamp(2.5rem,9vh,6rem); position:relative; z-index:6; }
+
+.timeline{ position:relative; max-width:980px; width:100%; margin:0 auto; z-index:6; }
+.timeline::before{
+  content:""; position:absolute; top:0; bottom:0; left:50%; width:1px;
+  background:linear-gradient(180deg,transparent,rgba(201,168,106,.4) 12%,rgba(201,168,106,.4) 88%,transparent);
+  transform:translateX(-50%);
+}
+
+.recuerdo{
+  position:relative; display:flex; align-items:center; gap:clamp(1.2rem,4vw,3rem);
+  margin:clamp(3rem,9vh,6rem) 0;
+}
+.recuerdo .r-foto{ flex:0 0 auto; width:clamp(150px,34vw,290px); }
+.recuerdo .r-frase{ flex:1; font-family:var(--serif); font-style:italic; }
+.recuerdo.der{ flex-direction:row-reverse; text-align:right; }
+.recuerdo .r-frase p{ font-family:var(--serif); }
+
+.recuerdo::after{
+  content:""; position:absolute; top:50%; left:50%; width:11px; height:11px; border-radius:50%;
+  background:var(--dorado); transform:translate(-50%,-50%);
+  box-shadow:0 0 0 6px rgba(201,168,106,.15); z-index:2;
+}
+
+/* memorias borrosas de fondo (cambio 4: mas presencia) */
+.memoria{ position:absolute; z-index:0; border-radius:8px; overflow:hidden; opacity:.32; filter:blur(5px) saturate(.95); pointer-events:none; box-shadow:0 20px 50px rgba(0,0,0,.4); }
+.memoria img{ width:100%; height:100%; object-fit:cover; }
+
+/* ===========================================================================
+   9. TAILANDIA (contador + fotos integradas)
+   =========================================================================== */
+.contador{ display:flex; justify-content:center; gap:clamp(.7rem,3.5vw,2rem); margin:2rem 0 1.4rem; }
+.contador .bloque{ min-width:62px; }
+.contador .num{ font-family:var(--serif); font-size:clamp(2.2rem,9vw,3.4rem); font-weight:500; color:var(--dorado-claro); line-height:1; font-variant-numeric:tabular-nums; }
+.contador .etq{ display:block; margin-top:.5rem; font-size:.66rem; letter-spacing:.22em; text-transform:uppercase; color:var(--beige); opacity:.85; }
+
+/* 2 fotos sutiles en Tailandia (mood viaje/verano, discretas, no tapan el texto) */
+.tai-foto{ position:absolute; width:clamp(100px,15vw,148px); z-index:2; opacity:.82; }
+.tai-foto.a{ top:10%; left:4%; transform:rotate(-6deg); }
+.tai-foto.b{ bottom:12%; right:4%; transform:rotate(6deg); }
+
+/* ===========================================================================
+   10. TRANSICION (agua / tropical + fotos alrededor — cambio 4)
+   =========================================================================== */
+.agua{
+  position:absolute; left:0; right:0; bottom:0; height:42%; z-index:1; pointer-events:none; opacity:.5;
+  background:
+    radial-gradient(60% 60% at 30% 40%,rgba(201,168,106,.10),transparent 70%),
+    repeating-linear-gradient(90deg,rgba(231,220,200,.05) 0 14px,transparent 14px 28px);
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 60%);
+          mask-image:linear-gradient(180deg,transparent,#000 60%);
+  animation:fluye 10s ease-in-out infinite alternate;
+}
+@keyframes fluye{ from{ transform:translateX(-12px); } to{ transform:translateX(12px); } }
+
+/* 6 fotos alrededor del texto en la transicion (simetricas, con aire) */
+.tr-foto{ position:absolute; width:clamp(104px,15vw,156px); z-index:2; }
+.tr-foto.a{ top:7%;    left:4%;   transform:rotate(-8deg); }
+.tr-foto.b{ top:9%;    right:5%;  transform:rotate(7deg); }
+.tr-foto.c{ top:43%;   left:1%;   transform:rotate(5deg); }
+.tr-foto.f{ top:43%;   right:1%;  transform:rotate(-5deg); }
+.tr-foto.d{ bottom:8%; right:6%;  transform:rotate(-7deg); }
+.tr-foto.e{ bottom:9%; left:6%;   transform:rotate(6deg); }
+
+/* halo sutil detras del texto de la transicion, para que se lea entre tantas fotos */
+#transicion .contenido{
+  background:radial-gradient(120% 110% at 50% 50%, rgba(8,15,11,.5), rgba(8,15,11,.12) 70%, transparent);
+  border-radius:26px; padding:clamp(1.4rem,5vw,2.2rem);
+  text-shadow:0 2px 16px rgba(0,0,0,.5);
+}
+
+/* ===========================================================================
+   11. SOBRES / PISTAS  (usa <details> para que funcionen incluso sin JS)
+   =========================================================================== */
+#pistas .contenido{ max-width:560px; }
+.sobres{ display:grid; grid-template-columns:1fr; gap:clamp(1rem,3vw,1.4rem); width:100%; margin:2.4rem auto 0; }
+
+.sobre{
+  position:relative; border-radius:14px; overflow:hidden; list-style:none;
+  background:linear-gradient(155deg,#24402d,#19291d);
+  border:1px solid rgba(201,168,106,.4);
+  box-shadow:0 14px 30px rgba(0,0,0,.4);
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s var(--ease);
+}
+.sobre[open]{ border-color:var(--dorado); box-shadow:0 18px 44px rgba(0,0,0,.5); }
+.sobre summary{
+  position:relative; cursor:pointer; list-style:none; -webkit-tap-highlight-color:transparent;
+  display:flex; align-items:center; gap:1rem; padding:1.25rem 1.4rem; min-height:64px;
+}
+.sobre summary::-webkit-details-marker{ display:none; }
+.sobre .num{ font-family:var(--serif); font-size:1.9rem; color:var(--dorado); line-height:1; width:2.2rem; text-align:center; flex:0 0 auto; }
+.sobre .etiqueta{ font-size:.74rem; letter-spacing:.26em; text-transform:uppercase; color:var(--beige); opacity:.85; }
+.sobre .flecha{ margin-left:auto; width:12px; height:12px; border-right:1px solid var(--dorado); border-bottom:1px solid var(--dorado); transform:rotate(45deg); transition:transform .35s var(--ease); flex:0 0 auto; }
+.sobre[open] .flecha{ transform:rotate(225deg); }
+
+/* contenido de la pista (microanimacion al abrir) */
+.sobre .pista{
+  padding:0 1.5rem 1.5rem; margin-top:-.2rem;
+  font-family:var(--serif); font-style:italic; font-size:clamp(1.15rem,4.4vw,1.5rem);
+  color:var(--beige-claro);
+  opacity:0; transform:translateY(-10px);
+  transition:opacity .45s var(--ease) .05s, transform .45s var(--ease) .05s;
+}
+.sobre[open] .pista{ opacity:1; transform:translateY(0); }
+
+/* zona apuesta / respuestas */
+.oculto{ display:none; }
+#apuesta-wrap{ margin-top:2.4rem; }
+#apuesta-input{
+  width:100%; max-width:360px; font-family:var(--sans); font-size:1.05rem; color:var(--beige-claro);
+  background:rgba(255,255,255,.05); border:1px solid rgba(201,168,106,.5); border-radius:999px;
+  padding:1rem 1.4rem; min-height:54px; text-align:center; margin-bottom:1.1rem;
+}
+#apuesta-input::placeholder{ color:var(--beige); opacity:.5; }
+#apuesta-input:focus{ outline:none; border-color:var(--dorado); background:rgba(255,255,255,.08); }
+.resp{ font-family:var(--serif); font-style:italic; font-size:clamp(1.2rem,4.6vw,1.65rem); margin:.3rem 0; }
+
+/* Modo apuesta: subimos la zona de escritura arriba del todo. Con el teclado
+   abierto dejamos hueco inferior = alto del teclado para que input y boton
+   queden siempre por encima del teclado (cambio 7). */
+body.apostando.js-nav #pistas, body.teclado.js-nav #pistas{ justify-content:flex-start; }
+body.teclado #pistas{ padding-bottom:calc(max(clamp(3.5rem,9vh,7rem), env(safe-area-inset-bottom)) + var(--kb,0px)); }
+#apuesta-wrap, #respuesta-wrap{ scroll-margin-top:calc(env(safe-area-inset-top) + 14px); }
+
+/* ===========================================================================
+   12. BOTONES
+   =========================================================================== */
+.btn{
+  display:inline-block; font-family:var(--sans); font-size:1.02rem; font-weight:400; letter-spacing:.06em;
+  color:var(--beige-claro); background:transparent; border:1px solid var(--dorado); border-radius:999px;
+  padding:1rem 2.2rem; min-height:54px; cursor:pointer;
+  transition:background .4s var(--ease),color .4s var(--ease),transform .2s var(--ease),box-shadow .4s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover,.btn:focus-visible{ background:var(--dorado); color:var(--verde-profundo); box-shadow:0 10px 30px rgba(201,168,106,.3); outline:none; }
+.btn:active{ transform:scale(.97); }
+.btn.solido{ background:var(--dorado); color:var(--verde-profundo); }
+.btn.solido:hover,.btn.solido:focus-visible{ background:var(--dorado-claro); }
+
+/* ===========================================================================
+   13. REVEAL — Asia Gardens
+   =========================================================================== */
+.reveal-nombre{
+  font-size:clamp(3.2rem,15vw,8rem); font-weight:600; letter-spacing:.02em; color:var(--beige-claro);
+  margin:.2rem 0; text-shadow:0 8px 36px rgba(0,0,0,.6); line-height:1;
+}
+.reveal-fechas{ font-family:var(--sans); font-size:clamp(1.1rem,4vw,1.55rem); letter-spacing:.36em; text-transform:uppercase; color:var(--dorado-claro); margin-bottom:1.6rem; }
+/* dos lineas de entrada del reveal: algo mas pequeñas para que no se partan en iPhone */
+.rev-lead{ font-size:clamp(1.05rem,4vw,1.6rem); line-height:1.3; text-wrap:balance; }
+#reveal.visible .reveal-nombre{ animation:revela 1.4s var(--ease) both; }
+@keyframes revela{ 0%{ opacity:0; transform:scale(.82); filter:blur(14px); letter-spacing:.3em; } 100%{ opacity:1; transform:scale(1); filter:blur(0); letter-spacing:.02em; } }
+
+/* ===========================================================================
+   14. CIERRE — mosaico lento + carta
+   =========================================================================== */
+.mosaico{ position:relative; width:100vw; max-width:100%; margin:0 0 2.6rem; display:flex; flex-direction:column; gap:clamp(.6rem,2vw,1rem); z-index:6; -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
+.fila{ display:flex; gap:clamp(.6rem,2vw,1rem); width:max-content; }
+.fila .polaroid{ width:clamp(108px,25vw,154px); flex:0 0 auto; }
+/* ritmo calmado para no competir con la carta (cambio 6) */
+.fila.a{ animation:desliza 75s linear infinite; }
+.fila.b{ animation:desliza 95s linear infinite reverse; }
+@keyframes desliza{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+.cierre-bg{ position:absolute; inset:0; z-index:0; background-size:cover; background-position:center; filter:blur(10px) brightness(.5); opacity:.45; transform:scale(1.08); }
+
+.carta{
+  position:relative; max-width:560px; margin:0 auto; text-align:left;
+  background:linear-gradient(180deg,#f7f2e6,#efe7d4); color:#3a3127; border-radius:6px;
+  padding:clamp(2rem,7vw,3.4rem) clamp(1.6rem,6vw,3rem);
+  box-shadow:0 26px 60px rgba(0,0,0,.5);
+}
+.carta::before{ content:""; position:absolute; left:50%; top:18px; transform:translateX(-50%); width:46px; height:1px; background:var(--dorado); }
+.carta p{ font-family:var(--serif); font-size:clamp(1.12rem,3.6vw,1.32rem); line-height:1.85; margin-bottom:1rem; color:#43392c; }
+.carta p:last-child{ margin-bottom:0; }
+.te-quiero{ font-family:var(--serif); font-style:italic; font-size:clamp(2.1rem,9vw,3.6rem); color:var(--dorado-claro); margin-top:2.6rem; }
+
+/* ===========================================================================
+   15. PISTA DE SCROLL (hero, solo respaldo sin JS)
+   =========================================================================== */
+.scroll-hint{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:6; opacity:.7; animation:subebaja 2.4s ease-in-out infinite; }
+.scroll-hint span{ display:block; width:14px; height:14px; border-right:1px solid var(--dorado); border-bottom:1px solid var(--dorado); transform:rotate(45deg); }
+@keyframes subebaja{ 0%,100%{ transform:translate(-50%,0); opacity:.7; } 50%{ transform:translate(-50%,8px); opacity:1; } }
+
+/* ===========================================================================
+   16. OVERLAY DE TRANSICION (al pulsar "Descubrir")
+   =========================================================================== */
+#overlay{ position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:opacity 1s var(--ease),visibility 1s var(--ease); background:radial-gradient(120% 120% at 50% 50%,#23402d,#0b150f 75%); overflow:hidden; }
+#overlay.activo{ opacity:1; visibility:visible; }
+#overlay .luz{ width:12px; height:12px; border-radius:50%; background:var(--dorado-claro); box-shadow:0 0 80px 40px rgba(201,168,106,.55); animation:bloom 1.8s ease-in-out infinite; }
+@keyframes bloom{ 0%,100%{ transform:scale(1); opacity:.7; } 50%{ transform:scale(2.6); opacity:1; } }
+#overlay .hoja{ opacity:0; }
+#overlay.activo .hoja.izq{ animation:barreIzq 1.6s var(--ease) forwards; }
+#overlay.activo .hoja.der{ animation:barreDer 1.6s var(--ease) forwards; }
+@keyframes barreIzq{ 0%{ opacity:0; transform:translateX(-60%) rotate(-12deg); } 60%{ opacity:.7; } 100%{ opacity:.55; transform:translateX(0) rotate(-12deg); } }
+@keyframes barreDer{ 0%{ opacity:0; transform:translateX(60%) rotate(162deg); } 60%{ opacity:.7; } 100%{ opacity:.55; transform:translateX(0) rotate(162deg); } }
+
+/* ===========================================================================
+   17. RESPONSIVE — iPhone / movil
+   =========================================================================== */
+@media (max-width:680px){
+  /* HERO: polaroids con mas protagonismo pero en esquinas (cambio 3) */
+  .hero-polaroids .polaroid{ width:138px; opacity:.92; }
+  .hp1{ top:3%;  left:-4%; }
+  .hp2{ top:4%;  right:-4%; }
+  .hp3{ bottom:4%; left:-3%; }
+  .hp4{ bottom:3%; right:-3%; }
+
+  /* RECUERDOS: foto arriba y frase debajo, centrado. Nada se tapa. */
+  .timeline::before{ left:18px; }
+  .recuerdo, .recuerdo.der{ flex-direction:column; text-align:center; gap:1.1rem; }
+  .recuerdo .r-foto{ width:min(70vw,300px); }
+  .recuerdo::after{ left:18px; }
+  .recuerdo .r-frase{ padding:0 .4rem; }
+  .memoria{ opacity:.26; }
+
+  /* TAILANDIA: 2 fotos discretas en esquinas opuestas */
+  .tai-foto{ width:84px; opacity:.78; }
+  .tai-foto.a{ top:3%; left:-4%; }
+  .tai-foto.b{ bottom:4%; right:-4%; }
+
+  /* TRANSICION: 6 fotos mas grandes (como las del inicio), enmarcando el texto */
+  .tr-foto{ width:130px; opacity:.92; }
+  .tr-foto.a{ top:1%;    left:-6%; }
+  .tr-foto.b{ top:2%;    right:-6%; }
+  .tr-foto.c{ top:34%;   left:-9%; }
+  .tr-foto.f{ top:34%;   right:-9%; }
+  .tr-foto.d{ bottom:9%;  right:-6%; }
+  .tr-foto.e{ bottom:11%; left:-6%; }
+
+  .hoja{ opacity:.34; width:clamp(110px,42vw,200px); }
+}
+
+/* En pantallas anchas: 2 columnas de sobres y mas aire */
+@media (min-width:820px){
+  .sobres{ grid-template-columns:1fr 1fr; }
+  .contenido{ max-width:680px; }
+}
+
+/* Pantallas muy estrechas (iPhone SE) */
+@media (max-width:360px){
+  .contador{ gap:.5rem; }
+  .contador .bloque{ min-width:54px; }
+}
+
+/* ===========================================================================
+   18. ACCESIBILIDAD — reducir movimiento si el sistema lo pide
+   =========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  .fx{ opacity:1; transform:none; }
+  .scroll-hint{ display:none; }
+  .hero-bg .capa.activa{ opacity:1; }
+}
+
+/* ===========================================================================
+   19. PANTALLA DE CARGA (sobre + anillo de progreso)
+   Cubre todo y descarga TODAS las fotos antes de dejar entrar.
+   =========================================================================== */
+#precarga{
+  position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:max(1.6rem,env(safe-area-inset-top)) max(1.4rem,env(safe-area-inset-right)) max(1.6rem,env(safe-area-inset-bottom)) max(1.4rem,env(safe-area-inset-left));
+  background:radial-gradient(120% 90% at 50% 22%,rgba(40,66,49,.5),transparent 60%),linear-gradient(180deg,#0b150f,#14241b 60%,#0c1611);
+  transition:opacity .8s var(--ease), visibility .8s var(--ease);
+}
+#precarga.fuera{ opacity:0; visibility:hidden; }
+.precarga-inner{ max-width:420px; width:100%; }
+.sobre-carga{ width:92px; height:auto; margin:0 auto 1.8rem; animation:pulso 2.6s ease-in-out infinite; }
+@keyframes pulso{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+.anillo-wrap{ position:relative; width:128px; height:128px; margin:0 auto 1.1rem; }
+.anillo{ width:100%; height:100%; transform:rotate(-90deg); }
+.anillo .bg{ fill:none; stroke:rgba(201,168,106,.18); stroke-width:4; }
+.anillo .fg{ fill:none; stroke:var(--dorado); stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset .4s var(--ease); }
+.precarga-pct{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:1.7rem; color:var(--dorado-claro); }
+.precarga-txt{ color:var(--beige); opacity:.82; font-size:.95rem; letter-spacing:.04em; margin-bottom:1.9rem; }
+#btn-abrir{ opacity:0; transform:translateY(8px); pointer-events:none; transition:opacity .6s var(--ease), transform .6s var(--ease), background .4s var(--ease), color .4s var(--ease); }
+#btn-abrir.listo{ opacity:1; transform:none; pointer-events:auto; }
+
+/* Aviso si el navegador no ejecuta JavaScript */
+.noscript{ background:var(--dorado); color:var(--verde-profundo); text-align:center; padding:.9rem 1rem; font-size:.95rem; }
+</style>
+</head>
+
+<body>
+
+<!-- PANTALLA DE CARGA: cubre todo y descarga TODAS las fotos antes de empezar -->
+<div id="precarga">
+  <div class="precarga-inner">
+    <svg class="sobre-carga" viewBox="0 0 100 72" fill="none" aria-hidden="true">
+      <rect x="2" y="6" width="96" height="60" rx="6" stroke="var(--dorado)" stroke-width="2.5"/>
+      <path d="M4 10 L50 42 L96 10" stroke="var(--dorado)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="anillo-wrap">
+      <svg class="anillo" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="bg" cx="60" cy="60" r="54"></circle>
+        <circle class="fg" id="anillo-fg" cx="60" cy="60" r="54"></circle>
+      </svg>
+      <div class="precarga-pct" id="precarga-pct">0%</div>
+    </div>
+    <p class="precarga-txt">Preparando tu sorpresa…</p>
+    <button class="btn" id="btn-abrir" disabled>Abrir</button>
+  </div>
+</div>
+<noscript><style>#precarga{display:none!important}</style></noscript>
+
+<noscript>
+  <div class="noscript">Para ver esta sorpresa con todas sus animaciones, activa JavaScript en tu navegador. Aun asi, puedes leer todo el contenido a continuacion.</div>
+</noscript>
+
+<!-- =========================================================================
+     SECCION 1 · HERO
+     ========================================================================= -->
+<section class="seccion" id="hero">
+  <div class="hero-bg" id="hero-bg" aria-hidden="true"></div>     <!-- carrusel de fondo (JS) -->
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-polaroids" id="hero-polaroids" aria-hidden="true"></div> <!-- polaroids flotantes (JS) -->
+
+  <img class="hoja izq" data-hoja="1" alt="" aria-hidden="true" />
+  <img class="hoja der" data-hoja="2" alt="" aria-hidden="true" />
+
+  <div class="contenido">
+    <!-- TEXTO seccion 1 -->
+    <p class="kicker fx" id="hero-kicker">02/07/2026</p>
+    <h1 class="t-xl fx" id="hero-titulo">¡Feliz cumpleaños!</h1>
+    <div class="filete fx"></div>
+    <p class="grande fx" id="hero-sub1" style="margin-bottom:1.3rem">Estoy muy feliz de poder pasar este cumpleaños contigo.</p>
+    <p class="med fx" id="hero-sub2" style="opacity:.92; margin-bottom:2.4rem">Estos meses contigo han sido una de las cosas más bonitas que me han pasado.</p>
+    <button class="btn fx" id="btn-empezar" data-ir="recuerdos">Tengo algo para ti</button>
+  </div>
+
+  <div class="scroll-hint" aria-hidden="true"><span></span></div>
+</section>
+
+<!-- =========================================================================
+     SECCION 2 · RECUERDOS (timeline emocional)
+     ========================================================================= -->
+<section class="seccion alta" id="recuerdos">
+  <div id="memorias" aria-hidden="true"></div> <!-- memorias borrosas de fondo (JS) -->
+
+  <div class="recuerdos-intro">
+    <!-- TEXTO seccion 2 (intro) -->
+    <p class="kicker fx">Nosotros</p>
+    <h2 class="t-m fx" id="rec-titulo">Antes de descubrir la sorpresa, quería empezar por lo importante.</h2>
+  </div>
+
+  <!-- TEXTO seccion 2 (frases): cada bloque tiene un hueco de foto (lo rellena el JS) -->
+  <div class="timeline" id="timeline">
+    <div class="recuerdo izq">
+      <div class="r-foto fx izq"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx der"><p class="t-s">Gracias por los planes improvisados.</p></div>
+    </div>
+    <div class="recuerdo der">
+      <div class="r-foto fx der"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx izq"><p class="t-s">Por las risas.</p></div>
+    </div>
+    <div class="recuerdo izq">
+      <div class="r-foto fx izq"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx der"><p class="t-s">Por hacer que todo sea más fácil.</p></div>
+    </div>
+    <div class="recuerdo der">
+      <div class="r-foto fx der"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx izq"><p class="t-s">Por cuidarme tanto.</p></div>
+    </div>
+    <div class="recuerdo izq">
+      <div class="r-foto fx izq"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx der"><p class="t-s">Por darme tranquilidad.</p></div>
+    </div>
+    <div class="recuerdo der">
+      <div class="r-foto fx der"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx izq"><p class="t-s">Por quererme.</p></div>
+    </div>
+    <div class="recuerdo izq">
+      <div class="r-foto fx izq"><div class="polaroid"><div class="marco"></div></div></div>
+      <div class="r-frase fx der"><p class="t-s">Por ser tú.</p></div>
+    </div>
+  </div>
+
+  <div class="continuar"><button class="btn fx" data-ir="tailandia">Seguir</button></div>
+</section>
+
+<!-- =========================================================================
+     SECCION 3 · TAILANDIA (horizonte + contador)
+     ========================================================================= -->
+<section class="seccion" id="tailandia">
+  <div class="bg-foto" aria-hidden="true"></div>
+  <img class="hoja izq" data-hoja="1" alt="" aria-hidden="true" />
+  <img class="hoja der" data-hoja="2" alt="" aria-hidden="true" />
+
+  <!-- 2 fotos sutiles, mood viaje/verano (JS) -->
+  <div class="tai-foto a" aria-hidden="true"></div>
+  <div class="tai-foto b" aria-hidden="true"></div>
+
+  <div class="contenido">
+    <!-- TEXTO seccion 3 -->
+    <p class="kicker fx" id="tai-kicker">El viaje grande</p>
+    <h2 class="t-l fx" id="tai-titulo">El 15 de agosto nos espera Tailandia.</h2>
+
+    <div class="contador fx" id="contador" aria-live="polite">
+      <div class="bloque"><span class="num" id="cd-dias">--</span><span class="etq">días</span></div>
+      <div class="bloque"><span class="num" id="cd-horas">--</span><span class="etq">horas</span></div>
+      <div class="bloque"><span class="num" id="cd-min">--</span><span class="etq">min</span></div>
+      <div class="bloque"><span class="num" id="cd-seg">--</span><span class="etq">seg</span></div>
+    </div>
+
+    <p class="grande fx" id="tai-sub1" style="margin-bottom:.3rem">Todavía queda.</p>
+    <p class="med fx" id="tai-sub2" style="opacity:.92">Pero antes de llegar allí, había algo que quería enseñarte.</p>
+
+    <div class="continuar"><button class="btn fx" data-ir="transicion">Continuar</button></div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     SECCION 4 · TRANSICION
+     ========================================================================= -->
+<section class="seccion" id="transicion">
+  <img class="hoja grande izq" data-hoja="1" alt="" aria-hidden="true" />
+  <img class="hoja grande der" data-hoja="2" alt="" aria-hidden="true" />
+  <div class="agua" aria-hidden="true"></div>
+
+  <div id="tr-memorias" aria-hidden="true"></div> <!-- memorias suaves de fondo (JS) -->
+  <!-- fotos alrededor del texto (JS) — 6 fotos, simetricas -->
+  <div class="tr-foto a" aria-hidden="true"></div>
+  <div class="tr-foto b" aria-hidden="true"></div>
+  <div class="tr-foto c" aria-hidden="true"></div>
+  <div class="tr-foto d" aria-hidden="true"></div>
+  <div class="tr-foto e" aria-hidden="true"></div>
+  <div class="tr-foto f" aria-hidden="true"></div>
+
+  <div class="contenido">
+    <!-- TEXTO seccion 4 -->
+    <p class="t-m fx" id="tr-1" style="margin-bottom:1.6rem">Mientras llega agosto, he preparado algo antes.</p>
+    <div class="filete fx"></div>
+    <p class="grande fx" id="tr-2" style="margin-bottom:.2rem">Algo más cerca.</p>
+    <p class="grande fx" id="tr-3" style="margin-bottom:.2rem">Más tranquilo.</p>
+    <p class="grande fx" id="tr-4" style="color:var(--dorado-claro)">Más nuestro.</p>
+
+    <div class="continuar"><button class="btn fx" data-ir="pistas">Ver las pistas</button></div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     SECCION 5 · PISTAS
+     ========================================================================= -->
+<section class="seccion" id="pistas">
+  <img class="hoja der-arriba" data-hoja="2" alt="" aria-hidden="true" />
+
+  <div class="contenido">
+    <!-- TEXTO seccion 5 -->
+    <h2 class="t-m fx" id="pistas-titulo">Antes de descubrirlo, tienes que abrir las pistas.</h2>
+    <p class="med fx" id="pistas-ayuda" style="opacity:.75; margin-top:.8rem">Toca cada sobre.</p>
+
+    <!-- Sobres con <details>: funcionan aunque el JS falle. NO TOCAR estas pistas. -->
+    <div class="sobres" id="sobres">
+      <details class="sobre" data-sobre>
+        <summary><span class="num">1</span><span class="etiqueta">Pista uno</span><span class="flecha" aria-hidden="true"></span></summary>
+        <p class="pista">No hace falta pasaporte.</p>
+      </details>
+      <details class="sobre" data-sobre>
+        <summary><span class="num">2</span><span class="etiqueta">Pista dos</span><span class="flecha" aria-hidden="true"></span></summary>
+        <p class="pista">Hay agua, naturaleza y cero prisa.</p>
+      </details>
+      <details class="sobre" data-sobre>
+        <summary><span class="num">3</span><span class="etiqueta">Pista tres</span><span class="flecha" aria-hidden="true"></span></summary>
+        <p class="pista">Del 17 al 19 de julio desapareces conmigo.</p>
+      </details>
+      <details class="sobre" data-sobre>
+        <summary><span class="num">4</span><span class="etiqueta">Pista cuatro</span><span class="flecha" aria-hidden="true"></span></summary>
+        <p class="pista">Vas a poder hacer la bolita sin que nadie te moleste.</p>
+      </details>
+    </div>
+
+    <div style="margin-top:2.6rem">
+      <button class="btn oculto" id="btn-creo">Vale… creo que ya lo sé</button>
+    </div>
+
+    <div id="apuesta-wrap" class="oculto">
+      <!-- TEXTO seccion 5 (apuesta) -->
+      <label for="apuesta-input" class="med" id="apuesta-label" style="display:block; margin-bottom:1rem">¿Dónde crees que nos vamos?</label>
+      <input type="text" id="apuesta-input" autocomplete="off" enterkeyhint="send" placeholder="Escribe tu apuesta…" />
+      <div><button class="btn solido" id="btn-enviar">Enviar</button></div>
+    </div>
+
+    <div id="respuesta-wrap" class="oculto" style="margin-top:2rem">
+      <p class="resp" id="resp-1">Casi…</p>
+      <p class="resp" id="resp-2" style="color:var(--dorado-claro); margin-bottom:1.8rem">Pero todavía falta la mejor parte.</p>
+      <button class="btn solido" id="btn-descubrir">Descubrir</button>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     SECCION 6 · REVEAL
+     ========================================================================= -->
+<section class="seccion" id="reveal">
+  <div class="bg-foto" aria-hidden="true"></div>
+  <img class="hoja izq" data-hoja="1" alt="" aria-hidden="true" />
+  <img class="hoja der" data-hoja="2" alt="" aria-hidden="true" />
+
+  <div class="contenido">
+    <!-- TEXTO seccion 6 -->
+    <p class="fx rev-lead" id="rev-1" style="margin-bottom:.2rem">No te pedí esos días porque sí.</p>
+    <p class="fx rev-lead" id="rev-2" style="color:var(--dorado-claro); margin-bottom:1.6rem">Los estaba guardando para esto.</p>
+
+    <h2 class="reveal-nombre" id="rev-nombre">Asia Gardens</h2>
+    <p class="reveal-fechas fx" id="rev-fechas">17–19 julio</p>
+
+    <div class="filete fx"></div>
+    <p class="grande fx" id="rev-3" style="opacity:.95">Nuestro pequeño secret spot antes del viaje grande.</p>
+
+    <div class="continuar"><button class="btn fx" data-ir="cierre">Seguir</button></div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     SECCION 7 · CIERRE
+     ========================================================================= -->
+<section class="seccion" id="cierre">
+  <div class="cierre-bg" aria-hidden="true"></div>
+
+  <div class="contenido" style="max-width:880px">
+    <div class="mosaico fx" id="mosaico" aria-hidden="true"></div> <!-- mosaico (JS) -->
+
+    <!-- TEXTO seccion 7 -->
+    <p class="grande fx" id="cierre-intro" style="margin-bottom:2.4rem">Y más allá del plan, quería decirte esto.</p>
+
+    <div class="carta fx" id="carta">
+      <p>Gracias por cómo me cuidas.</p>
+      <p>Por la tranquilidad que me das, por lo fácil que haces todo y por la forma en la que estamos construyendo esto.</p>
+      <p>Tengo muchas ganas de todo lo que viene.</p>
+      <p>De seguir compartiendo planes, viajes, momentos y todo lo que todavía nos queda por vivir.</p>
+      <p>Pero sobre todo, tengo muchas ganas de seguir viviéndolo contigo.</p>
+    </div>
+
+    <p class="te-quiero fx" id="te-quiero">Te quiero.</p>
+  </div>
+</section>
+
+<!-- Velo de fundido entre pantallas y overlay de transicion del reveal -->
+<div id="fade" aria-hidden="true"></div>
+<div id="overlay" aria-hidden="true">
+  <img class="hoja izq" data-hoja="1" alt="" />
+  <img class="hoja der" data-hoja="2" alt="" />
+  <div class="luz"></div>
+</div>
+
+
+<script>
+/* ===========================================================================
+   ==============================  CONFIG  ==================================
+   Aqui cambias la FECHA del contador, la lista de FOTOS, los FONDOS y el
+   REPARTO de fotos por seccion.
+   Los TEXTOS estan en el HTML (cada seccion comentada), para que se sigan
+   viendo aunque el navegador no ejecute el JavaScript.
+   =========================================================================== */
+const CONFIG = {
+
+  /* ---- FECHA OBJETIVO DEL CONTADOR (viaje a Tailandia) ---- */
+  fechaTailandia: '2026-08-15T00:00:00',
+
+  /* ---- LISTA DE FOTOS (24) + dos sueltas. Mismos archivos en esta carpeta. ---- */
+  fotos: [
+    'foto1.jpg','foto2.jpg','foto3.jpg','foto4.jpg','foto5.jpg','foto6.jpg',
+    'foto7.jpg','foto8.jpg','foto9.jpg','foto10.jpg','foto11.jpg','foto12.jpg',
+    'foto13.jpg','foto14.jpg','foto15.jpg','foto16.jpg','foto17.jpg','foto18.jpg',
+    'foto19.jpg','foto20.jpg','foto21.jpg','foto22.jpg','foto23.jpg','foto24.jpg'
+  ],
+
+  /* ---- FONDOS Y HOJAS ---- */
+  fondos: {
+    tailandia:   'thailand-bg.jpg',
+    asiaGardens: 'asia-gardens-bg.jpg',
+    hoja1:'leaf1.png',
+    hoja2:'leaf2.png'
+  },
+
+  /* ---- REPARTO DE FOTOS POR SECCION ----
+          Numeros = posicion en la lista de arriba (1 = foto1.jpg).
+          Tambien puedes poner un nombre de archivo directo, p.ej. 'extra.jpg'. */
+  reparto: {
+    heroFondo:    [1,2,3,4,5,6,7,8],        // carrusel de fondo del inicio
+    heroPolaroids:[1,2,3,4],                // polaroids flotantes del inicio
+    recuerdos:    [5,6,7,8,9,10,11],        // 7 fotos de la timeline
+    memorias:     [13,14,15,16],            // fotos borrosas de fondo en Recuerdos
+    tailandia:    [17,18],                   // 2 fotos sutiles, mood viaje/verano
+    // 6 fotos alrededor del texto de la transicion (simetricas)
+    transicion:   [12,'extra.jpg','extra2.jpg',19,21,13],
+    // mosaico final: usa TODAS. El JS parte la lista en dos mitades para que
+    // la fila de arriba y la de abajo enseñen fotos distintas (cambio 6).
+    cierre:       [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,'extra.jpg','extra2.jpg']
+  }
+};
+
+
+/* ===========================================================================
+   LOGICA  (no necesitas tocar nada de aqui en adelante)
+   Va dentro de try/catch: si algo fallara, se quita la navegacion por
+   pantallas y la pagina se ve como scroll normal (respaldo).
+   =========================================================================== */
+(function(){
+  'use strict';
+
+  const $  = (s,c=document)=>c.querySelector(s);
+  const $$ = (s,c=document)=>Array.from(c.querySelectorAll(s));
+  const SIN_MOV = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Indice 1-based -> archivo; o nombre de archivo directo si es texto
+  const fotoDe = n => (typeof n==='string') ? n : CONFIG.fotos[n-1];
+
+  function ponerFoto(marco, src){
+    if(!src) return;
+    const img=document.createElement('img');
+    img.alt=''; img.loading='lazy'; img.decoding='async';
+    img.addEventListener('error',()=>img.remove());  // si falla, queda el marco placeholder
+    img.src=src; marco.appendChild(img);
+  }
+  function polaroid(src, extraClase){
+    const d=document.createElement('div'); d.className='polaroid'+(extraClase?' '+extraClase:'');
+    const m=document.createElement('div'); m.className='marco';
+    ponerFoto(m,src); d.appendChild(m); return d;
+  }
+  // memoria borrosa colocada en una posicion dada
+  function memoria(src, pos){
+    const d=document.createElement('div'); d.className='memoria';
+    Object.assign(d.style,{ top:pos.top||'auto', bottom:pos.bottom||'auto', left:pos.left||'auto', right:pos.right||'auto', width:pos.w, aspectRatio:'4/5' });
+    const im=document.createElement('img'); im.alt=''; im.loading='lazy';
+    im.addEventListener('error',()=>d.remove()); im.src=src; d.appendChild(im); return d;
+  }
+
+  /* ---- Imagenes: fondos, hojas, hero, recuerdos, transicion, tailandia, cierre ---- */
+  function aplicarImagenes(){
+    const F=CONFIG.fondos, R=CONFIG.reparto;
+
+    document.documentElement.style.setProperty('--bg-tailandia',`url('${F.tailandia}')`);
+    document.documentElement.style.setProperty('--bg-asia',`url('${F.asiaGardens}')`);
+    const cbg=$('.cierre-bg'); if(cbg) cbg.style.backgroundImage=`url('${fotoDe(R.cierre[0])||F.asiaGardens}')`;
+
+    // Hojas
+    $$('.hoja').forEach(h=>{
+      h.src = h.getAttribute('data-hoja')==='2' ? F.hoja2 : F.hoja1;
+      h.addEventListener('error',()=>h.classList.add('sin-img'));
+    });
+
+    // HERO: carrusel de fondo — cargamos la 1a imagen ya, y el resto POCO A POCO
+    // (asi la pantalla de inicio no tiene que bajarse 8 fotos a la vez)
+    const hb=$('#hero-bg'); const capas=[];
+    const fondos=R.heroFondo.map(fotoDe).filter(Boolean);
+    function cargaFondo(i){
+      if(i>=fondos.length) return;
+      const img=new Image(); img.className='capa'; img.alt=''; img.decoding='async';
+      try{ img.fetchPriority = (i===0?'high':'low'); }catch(e){}
+      img.onload=()=>{
+        hb.appendChild(img);
+        if(capas.length===0) img.classList.add('activa');
+        capas.push(img);
+        // la siguiente, tras un respiro, para no competir con el primer pintado
+        if(i+1<fondos.length) setTimeout(()=>cargaFondo(i+1), i===0?700:450);
+      };
+      img.onerror=()=>{ if(i+1<fondos.length) setTimeout(()=>cargaFondo(i+1),60); };
+      img.src=fondos[i];
+    }
+    cargaFondo(0);
+    if(!SIN_MOV){
+      let idx=0;
+      setInterval(()=>{
+        if(capas.length<2) return;
+        capas[idx].classList.remove('activa');
+        idx=(idx+1)%capas.length;
+        capas[idx].classList.add('activa');
+      },5500);
+    }
+
+    // HERO: polaroids flotantes
+    const hp=$('#hero-polaroids');
+    R.heroPolaroids.forEach((n,i)=>{ const p=polaroid(fotoDe(n)); p.classList.add('hp'+(i+1)); hp.appendChild(p); });
+
+    // RECUERDOS: fotos de la timeline
+    $$('#timeline .r-foto .marco').forEach((marco,i)=>{ const src=fotoDe(R.recuerdos[i]); if(src) ponerFoto(marco,src); });
+    // RECUERDOS: memorias borrosas
+    const mem=$('#memorias');
+    const posMem=[ {top:'10%',left:'3%',w:'36vw'},{top:'38%',right:'2%',w:'32vw'},{top:'64%',left:'5%',w:'34vw'},{top:'85%',right:'6%',w:'30vw'} ];
+    R.memorias.forEach((n,i)=>{ const src=fotoDe(n); if(src) mem.appendChild(memoria(src,posMem[i%posMem.length])); });
+
+    // TRANSICION: polaroids alrededor + 2 memorias suaves
+    $$('#transicion .tr-foto').forEach((slot,i)=>{ const src=fotoDe(R.transicion[i]); if(src) slot.appendChild(polaroid(src)); });
+    const trm=$('#tr-memorias');
+    if(trm){
+      const posT=[ {top:'20%',right:'7%',w:'30vw'},{bottom:'16%',left:'6%',w:'28vw'} ];
+      [R.transicion[0],R.transicion[2]].forEach((n,i)=>{ const src=fotoDe(n); if(src) trm.appendChild(memoria(src,posT[i])); });
+    }
+
+    // TAILANDIA: 2 fotos sutiles
+    $$('#tailandia .tai-foto').forEach((slot,i)=>{ const src=fotoDe(R.tailandia[i]); if(src) slot.appendChild(polaroid(src)); });
+
+    // CIERRE: mosaico de DOS filas con fotos DISTINTAS arriba y abajo (cambio 6)
+    const mos=$('#mosaico');
+    const pool=R.cierre.map(fotoDe).filter(Boolean);
+    if(pool.length){
+      const mitad=Math.ceil(pool.length/2);
+      const arriba=pool.slice(0,mitad);   // grupo superior
+      const abajo =pool.slice(mitad);     // grupo inferior (distinto)
+      const filaA=document.createElement('div'); filaA.className='fila a';
+      const filaB=document.createElement('div'); filaB.className='fila b';
+      [...arriba,...arriba].forEach(src=> filaA.appendChild(polaroid(src,'cuadrada')) ); // x2 = loop continuo
+      [...abajo,...abajo].forEach(src=> filaB.appendChild(polaroid(src,'cuadrada')) );
+      mos.appendChild(filaA); mos.appendChild(filaB);
+    }
+  }
+
+  /* ---- Contador ---- */
+  function contador(){
+    const objetivo=new Date(CONFIG.fechaTailandia).getTime();
+    const d=$('#cd-dias'),h=$('#cd-horas'),m=$('#cd-min'),s=$('#cd-seg'); if(!d) return;
+    const dc=n=>(n<10?'0':'')+n;
+    function tick(){
+      let dif=objetivo-Date.now(); if(dif<0) dif=0;
+      d.textContent=Math.floor(dif/86400000);
+      h.textContent=dc(Math.floor(dif%86400000/3600000));
+      m.textContent=dc(Math.floor(dif%3600000/60000));
+      s.textContent=dc(Math.floor(dif%60000/1000));
+    }
+    tick(); setInterval(tick,1000);
+  }
+
+  /* ===========================================================================
+     NAVEGACION POR PANTALLAS
+     =========================================================================== */
+  const ORDEN=['hero','recuerdos','tailandia','transicion','pistas','reveal','cierre'];
+  let actual='hero';
+
+  // Revela los .fx de una seccion (fundido suave, con leve escalonado)
+  function revelar(sec){
+    if(!sec) return;
+    const els=$$('.fx',sec);
+    els.forEach(e=>e.classList.remove('visible'));
+    requestAnimationFrame(()=>{
+      els.forEach((e,i)=>{ const d=SIN_MOV?0:Math.min(i*60,420); setTimeout(()=>e.classList.add('visible'),d); });
+    });
+    if(sec.id==='reveal') sec.classList.add('visible');
+  }
+
+  // Cambia de pantalla con fundido
+  function irA(id){
+    if(id===actual) return;
+    const destino=$('#'+id); if(!destino) return;
+    const aplicar=()=>{
+      $$('.seccion').forEach(s=>s.classList.remove('activa'));
+      destino.classList.add('activa');
+      actual=id;
+      window.scrollTo(0,0);
+      revelar(destino);
+    };
+    if(SIN_MOV){ aplicar(); return; }
+    const fade=$('#fade');
+    fade.classList.add('on');
+    setTimeout(()=>{ aplicar(); setTimeout(()=>fade.classList.remove('on'),70); },380);
+  }
+
+  // Cambio "instantaneo" usado bajo el overlay del reveal (sin fundido propio)
+  function irInstante(id){
+    const destino=$('#'+id); if(!destino) return;
+    $$('.seccion').forEach(s=>s.classList.remove('activa'));
+    destino.classList.add('activa'); actual=id; window.scrollTo(0,0); revelar(destino);
+  }
+
+  function navegacion(){
+    $$('[data-ir]').forEach(b=> b.addEventListener('click',()=>irA(b.getAttribute('data-ir'))) );
+  }
+
+  /* ---- Sobres: contar abiertos -> mostrar boton ---- */
+  function sobres(){
+    const lista=$$('#sobres [data-sobre]'); const abiertos=new Set();
+    lista.forEach((det,i)=>{
+      det.addEventListener('toggle',()=>{
+        if(det.open) abiertos.add(i);
+        if(abiertos.size===lista.length) mostrar($('#btn-creo'));
+      });
+    });
+  }
+  function mostrar(el){ if(!el) return; el.classList.remove('oculto'); el.classList.add('fx'); void el.offsetWidth; el.classList.add('visible'); }
+
+  /* ---- Flujo: creo -> apuesta -> descubrir ---- */
+  function flujo(){
+    const creo=$('#btn-creo');
+    creo && creo.addEventListener('click',()=>{
+      creo.classList.add('oculto');
+      document.body.classList.add('apostando');      // alinea #pistas arriba
+      const wrap=$('#apuesta-wrap'); mostrar(wrap);
+      const inp=$('#apuesta-input');
+      // 1) subimos la zona de escritura arriba del todo y 2) DESPUES enfocamos,
+      // para que el teclado del movil no la deje escondida abajo
+      const subir=()=>{ wrap.scrollIntoView({block:'start',behavior:SIN_MOV?'auto':'smooth'}); };
+      requestAnimationFrame(subir);
+      setTimeout(()=>{ inp&&inp.focus(); subir(); }, SIN_MOV?0:360);
+    });
+
+    function enviar(){
+      const inp=$('#apuesta-input'); if(!inp || inp.value.trim()===''){ inp&&inp.focus(); return; }
+      inp.blur();                          // cierra el teclado del movil
+      document.body.classList.remove('teclado'); document.body.classList.remove('apostando');
+      $('#apuesta-wrap').classList.add('oculto');
+      const r=$('#respuesta-wrap'); mostrar(r);
+      requestAnimationFrame(()=>{ r.scrollIntoView({block:'center',behavior:SIN_MOV?'auto':'smooth'}); });
+    }
+    const env=$('#btn-enviar'); env&&env.addEventListener('click',enviar);
+    const inp=$('#apuesta-input'); inp&&inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); enviar(); } });
+
+    const desc=$('#btn-descubrir'); desc&&desc.addEventListener('click',descubrir);
+  }
+
+  /* ---- DESCUBRIR: overlay potente (hojas + luz) y luego el reveal ---- */
+  function descubrir(){
+    if(SIN_MOV){ irA('reveal'); return; }
+    const ov=$('#overlay');
+    ov.classList.add('activo');
+    setTimeout(()=>{ irInstante('reveal'); },900);   // cambiamos de pantalla tapados por el overlay
+    setTimeout(()=>{ ov.classList.remove('activo'); },1750);
+  }
+
+  /* ---- Teclado del movil: mantener el input visible (cambio 7) ---- */
+  function teclado(){
+    const inp=$('#apuesta-input'); if(!inp) return;
+    const wrap=$('#apuesta-wrap');
+    const vv=window.visualViewport;
+    function ajusta(){
+      if(!vv) return;
+      const kb=Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty('--kb', kb+'px');
+    }
+    function subir(){ (wrap||inp).scrollIntoView({block:'start',behavior:SIN_MOV?'auto':'smooth'}); }
+    function alRedimensionar(){ ajusta(); subir(); }   // cuando aparece/cambia el teclado
+    inp.addEventListener('focus',()=>{
+      document.body.classList.add('teclado');
+      vv && vv.addEventListener('resize',alRedimensionar);
+      setTimeout(()=>{ ajusta(); subir(); },280);
+    });
+    inp.addEventListener('blur',()=>{
+      document.body.classList.remove('teclado');
+      document.documentElement.style.setProperty('--kb','0px');
+      vv && vv.removeEventListener('resize',alRedimensionar);
+    });
+  }
+
+  /* ---- PANTALLA DE CARGA: descarga TODAS las fotos antes de dejar entrar ----
+     Cada imagen cuenta UNA sola vez (cargue o falle). El progreso nunca baja.
+     El boton "Abrir" solo se habilita cuando TODAS han terminado de verdad. ---- */
+  function precarga(){
+    const cont=$('#precarga'); if(!cont || cont.dataset.go) return;
+    cont.dataset.go='1';   // por si acaso, no ejecutar dos veces
+    const R=CONFIG.reparto, F=CONFIG.fondos;
+    const set=new Set();
+    CONFIG.fotos.forEach(s=>set.add(s));
+    Object.keys(R).forEach(k=>R[k].forEach(n=>set.add(fotoDe(n))));
+    [F.tailandia,F.asiaGardens,F.hoja1,F.hoja2].forEach(s=>set.add(s));
+    const urls=[...set].filter(Boolean);
+    const total=urls.length||1;
+    const fg=$('#anillo-fg'), pct=$('#precarga-pct'), txt=$('.precarga-txt'), btn=$('#btn-abrir');
+    const C=2*Math.PI*54;   // circunferencia del anillo (r=54)
+    if(fg){ fg.style.strokeDasharray=C; fg.style.strokeDashoffset=C; }
+    let hechas=0, acabado=false;
+    function pinta(){
+      const p=Math.max(0, Math.min(1, hechas/total));   // hechas solo sube -> nunca retrocede
+      if(fg) fg.style.strokeDashoffset=C*(1-p);
+      if(pct) pct.textContent=Math.round(p*100)+'%';
+    }
+    function finito(){
+      if(acabado) return; acabado=true;
+      hechas=total; pinta();
+      if(txt) txt.textContent='Todo listo';
+      if(btn){ btn.disabled=false; btn.classList.add('listo'); }
+    }
+    // cada imagen resuelve UNA vez (carga o error), aunque venga de cache
+    function cargaUna(src){
+      return new Promise(res=>{
+        const im=new Image();
+        let hecho=false;
+        const fin=()=>{ if(hecho) return; hecho=true; hechas++; pinta(); res(); };
+        im.onload=fin; im.onerror=fin;
+        im.src=src;
+        if(im.complete) fin();
+      });
+    }
+    // SOLO se habilita "Abrir" cuando TODAS han terminado (Promise.all)
+    Promise.all(urls.map(cargaUna)).then(finito);
+    setTimeout(finito, 25000);   // seguridad: si algo se atasca, no bloquear para siempre
+    btn && btn.addEventListener('click',()=>{
+      if(!acabado) return;       // no dejar entrar si no esta todo cargado
+      cont.classList.add('fuera');
+      setTimeout(()=>{ cont.style.display='none'; }, 800);
+      revelar($('#hero'));
+    });
+  }
+
+  /* ---- ARRANQUE ---- */
+  function init(){
+    document.body.classList.add('js-nav');   // activa la navegacion por pantallas
+    $('#hero').classList.add('activa');       // empezamos en el hero (tapado por la pantalla de carga)
+    aplicarImagenes();
+    contador();
+    sobres(); flujo(); navegacion(); teclado();
+    revelar($('#hero'));
+    precarga();                               // descarga todo y muestra el progreso
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    try{ init(); }
+    catch(err){
+      // Respaldo: sin navegacion por pantallas, todo visible en scroll normal
+      console.error('Fallo al iniciar la sorpresa:',err);
+      document.body.classList.remove('js-nav');
+      const pc=$('#precarga'); if(pc) pc.style.display='none';   // no dejar la pantalla de carga atascada
+      $$('.fx').forEach(e=>e.classList.add('visible'));
+      const rev=$('#reveal'); rev&&rev.classList.add('visible');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
