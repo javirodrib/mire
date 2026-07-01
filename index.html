@@ -329,10 +329,12 @@ body.js-nav .scroll-hint{ display:none; }          /* ya no navegamos por scroll
 .contador .num{ font-family:var(--serif); font-size:clamp(2.2rem,9vw,3.4rem); font-weight:500; color:var(--dorado-claro); line-height:1; font-variant-numeric:tabular-nums; }
 .contador .etq{ display:block; margin-top:.5rem; font-size:.66rem; letter-spacing:.22em; text-transform:uppercase; color:var(--beige); opacity:.85; }
 
-/* 2 fotos sutiles en Tailandia (mood viaje/verano, discretas, no tapan el texto) */
-.tai-foto{ position:absolute; width:clamp(100px,15vw,148px); z-index:2; opacity:.82; }
-.tai-foto.a{ top:10%; left:4%; transform:rotate(-6deg); }
-.tai-foto.b{ bottom:12%; right:4%; transform:rotate(6deg); }
+/* 4 fotos en Tailandia, una en cada esquina (mas grandes, como en las otras pantallas) */
+.tai-foto{ position:absolute; width:clamp(120px,26vw,200px); z-index:2; opacity:.9; }
+.tai-foto.a{ top:8%;     left:4%;  transform:rotate(-6deg); }  /* sup izq */
+.tai-foto.c{ top:9%;     right:4%; transform:rotate(5deg); }   /* sup der */
+.tai-foto.d{ bottom:10%; left:5%;  transform:rotate(-5deg); }  /* inf izq */
+.tai-foto.b{ bottom:12%; right:4%; transform:rotate(6deg); }   /* inf der */
 
 /* ===========================================================================
    10. TRANSICION (agua / tropical + fotos alrededor — cambio 4)
@@ -508,10 +510,12 @@ body.teclado #pistas{ padding-bottom:calc(max(clamp(3.5rem,9vh,7rem), env(safe-a
   .recuerdo .r-frase{ padding:0 .4rem; }
   .memoria{ opacity:.26; }
 
-  /* TAILANDIA: 2 fotos discretas en esquinas opuestas */
-  .tai-foto{ width:84px; opacity:.78; }
-  .tai-foto.a{ top:3%; left:-4%; }
-  .tai-foto.b{ bottom:4%; right:-4%; }
+  /* TAILANDIA: 4 fotos, una en cada esquina (mas grandes) */
+  .tai-foto{ width:120px; opacity:.9; }
+  .tai-foto.a{ top:2%;    left:-6%; }
+  .tai-foto.c{ top:2%;    right:-6%; }
+  .tai-foto.d{ bottom:3%; left:-6%; }
+  .tai-foto.b{ bottom:3%; right:-6%; }
 
   /* TRANSICION: 6 fotos mas grandes (como las del inicio), enmarcando el texto */
   .tr-foto{ width:130px; opacity:.92; }
@@ -680,9 +684,11 @@ body.teclado #pistas{ padding-bottom:calc(max(clamp(3.5rem,9vh,7rem), env(safe-a
   <img class="hoja izq" data-hoja="1" alt="" aria-hidden="true" />
   <img class="hoja der" data-hoja="2" alt="" aria-hidden="true" />
 
-  <!-- 2 fotos sutiles, mood viaje/verano (JS) -->
+  <!-- 4 fotos, una en cada esquina (JS) -->
   <div class="tai-foto a" aria-hidden="true"></div>
   <div class="tai-foto b" aria-hidden="true"></div>
+  <div class="tai-foto c" aria-hidden="true"></div>
+  <div class="tai-foto d" aria-hidden="true"></div>
 
   <div class="contenido">
     <!-- TEXTO seccion 3 -->
@@ -873,7 +879,7 @@ const CONFIG = {
     heroPolaroids:[1,2,3,4],                // polaroids flotantes del inicio
     recuerdos:    [5,6,7,8,9,10,11],        // 7 fotos de la timeline
     memorias:     [13,14,15,16],            // fotos borrosas de fondo en Recuerdos
-    tailandia:    [17,18],                   // 2 fotos sutiles, mood viaje/verano
+    tailandia:    [17,18,'foto25.jpg','foto26.jpg'], // 4 fotos: 17 sup-izq, 18 inf-der, 25 sup-der, 26 inf-izq
     // 6 fotos alrededor del texto de la transicion (simetricas)
     transicion:   [12,'extra.jpg','extra2.jpg',19,21,13],
     // mosaico final: usa TODAS. El JS parte la lista en dos mitades para que
