@@ -303,6 +303,24 @@ body.js-nav .scroll-hint{ display:none; }          /* ya no navegamos por scroll
 .memoria{ position:absolute; z-index:0; border-radius:8px; overflow:hidden; opacity:.32; filter:blur(5px) saturate(.95); pointer-events:none; box-shadow:0 20px 50px rgba(0,0,0,.4); }
 .memoria img{ width:100%; height:100%; object-fit:cover; }
 
+/* Escritorio: la timeline en DOS mitades simetricas con un hueco central,
+   para que las frases no se crucen con los puntos dorados del centro.
+   En movil (<=680px) NO cambia nada: sigue en columna. */
+@media (min-width:681px){
+  .recuerdo{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:center;
+    gap:clamp(2.5rem,7vw,5rem);
+  }
+  .recuerdo .r-foto{ width:auto; display:flex; }
+  .recuerdo .r-foto .polaroid{ width:clamp(150px,30vw,290px); }
+  .recuerdo.izq .r-foto{  grid-column:1; grid-row:1; justify-content:flex-end; }
+  .recuerdo.izq .r-frase{ grid-column:2; grid-row:1; }
+  .recuerdo.der .r-foto{  grid-column:2; grid-row:1; justify-content:flex-start; }
+  .recuerdo.der .r-frase{ grid-column:1; grid-row:1; text-align:right; }
+}
+
 /* ===========================================================================
    9. TAILANDIA (contador + fotos integradas)
    =========================================================================== */
@@ -800,11 +818,9 @@ body.teclado #pistas{ padding-bottom:calc(max(clamp(3.5rem,9vh,7rem), env(safe-a
     <p class="grande fx" id="cierre-intro" style="margin-bottom:2.4rem">Y más allá del plan, quería decirte esto.</p>
 
     <div class="carta fx" id="carta">
-      <p>Gracias por cómo me cuidas.</p>
-      <p>Por la tranquilidad que me das, por lo fácil que haces todo y por la forma en la que estamos construyendo esto.</p>
-      <p>Tengo muchas ganas de todo lo que viene.</p>
-      <p>De seguir compartiendo planes, viajes, momentos y todo lo que todavía nos queda por vivir.</p>
-      <p>Pero sobre todo, tengo muchas ganas de seguir viviéndolo contigo.</p>
+      <p>Gracias por cómo me cuidas, por tus besos y tus abrazos, que me encantan, y por esa tranquilidad que me das cuando estamos juntos.</p>
+      <p>Me gusta lo fácil que salen las cosas contigo, la forma en la que nos entendemos y cómo, poco a poco, vamos construyendo algo que me hace mucha ilusión.</p>
+      <p>Tengo muchas ganas de seguir compartiendo planes, viajes, momentos y tantas cosas que nos quedan por vivir. Pero, sobre todo, me apetece muchísimo vivirlo contigo, porque me haces muy feliz.</p>
     </div>
 
     <p class="te-quiero fx" id="te-quiero">Te quiero.</p>
